@@ -1,29 +1,26 @@
 package com.clickntap.vimeo;
 
+import org.apache.http.Header;
+import org.apache.http.HttpEntity;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.*;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.ssl.SSLContexts;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.FileEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.message.BasicNameValuePair;
+
+import org.json.JSONObject;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPatch;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.FileEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.message.BasicNameValuePair;
-import org.json.JSONObject;
 
 public class Vimeo {
 	private static final String VIMEO_SERVER = "https://api.vimeo.com";
@@ -186,7 +183,9 @@ public class Vimeo {
 	}
 
 	private VimeoResponse apiRequest(String endpoint, String methodName, Map<String, String> params, File file) throws Exception {
-		CloseableHttpClient client = HttpClientBuilder.create().build();
+        SSLConnectionSocketFactory socketFactory =
+               new SSLConnectionSocketFactory(SSLContexts.custom().useProtocol("TLSv1.2").build());
+        CloseableHttpClient client = HttpClientBuilder.create().setSSLSocketFactory(socketFactory).build();
 		HttpRequestBase request = null;
 		String url = null;
 		if (endpoint.startsWith("http")) {
