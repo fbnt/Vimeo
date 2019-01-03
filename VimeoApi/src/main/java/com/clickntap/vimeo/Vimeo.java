@@ -18,11 +18,14 @@ import org.json.JSONObject;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.net.URLEncoder;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 public class Vimeo {
+    
 	private static final String VIMEO_SERVER = "https://api.vimeo.com";
 	private String token;
 	private String tokenType;
@@ -63,9 +66,10 @@ public class Vimeo {
 		return apiRequest(videoEndpoint, HttpDelete.METHOD_NAME, null, null);
 	}
 
-	public VimeoResponse getVideos() throws Exception {
-		return apiRequest("/me/videos", HttpGet.METHOD_NAME, null, null);
-	}
+    public VimeoResponse getVideos(String pageNumber, String itemsPerPage) throws Exception {
+        String apiRequestEndpoint = "/me/videos?page=" + pageNumber + "&per_page=" + itemsPerPage;
+        return apiRequest(apiRequestEndpoint, HttpGet.METHOD_NAME, null, null);
+    }
 
 	public VimeoResponse searchVideos(String query) throws Exception {
 		return apiRequest("/me/videos?query="+query, HttpGet.METHOD_NAME, null, null);
@@ -182,10 +186,21 @@ public class Vimeo {
 		return apiRequest(new StringBuffer(videoEndPoint).append("/texttracks/").append(textTrackId).toString(), HttpDelete.METHOD_NAME, null, null);
 	}
 
-	private VimeoResponse apiRequest(String endpoint, String methodName, Map<String, String> params, File file) throws Exception {
-        SSLConnectionSocketFactory socketFactory =
-               new SSLConnectionSocketFactory(SSLContexts.custom().useProtocol("TLSv1.2").build());
-        CloseableHttpClient client = HttpClientBuilder.create().setSSLSocketFactory(socketFactory).build();
+	private CloseableHttpClient getSecureHttpClient() {
+	    try {
+            SSLConnectionSocketFactory socketFactory =
+                   new SSLConnectionSocketFactory(SSLContexts.custom().useProtocol("TLSv1.2").build());
+            return HttpClientBuilder.create().setSSLSocketFactory(socketFactory).build();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (KeyManagementException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private VimeoResponse apiRequest(String endpoint, String methodName, Map<String, String> params, File file) throws Exception {
+        CloseableHttpClient client = getSecureHttpClient();
 		HttpRequestBase request = null;
 		String url = null;
 		if (endpoint.startsWith("http")) {
